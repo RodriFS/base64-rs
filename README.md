@@ -20,7 +20,7 @@ Options:
 
 ```
   -e --encode: Encodes the given string
-  **-d --decode: Decodes de given string (pending)**
+  -d --decode: Decodes de given string (pending)
 ```
 
 Path:
