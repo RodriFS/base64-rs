@@ -1,6 +1,6 @@
 # base64-rs
 
-A small cli encoder and **decoder (pending)**
+A small cli encoder and decoder
 
 ## How to run:
 
@@ -24,7 +24,7 @@ Options:
 ```
 
 Path:
-The path of the file you want to encode or **decode (pending)**
+The path of the file you want to encode or decode (pending)
 
 Optionally you can output your results to a txt file:
 

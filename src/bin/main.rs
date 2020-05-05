@@ -1,3 +1,4 @@
+use base64_rs::decoders::decode_faster;
 use base64_rs::encoders::encode_faster;
 use std::env;
 use std::fs;
@@ -31,6 +32,20 @@ fn main() {
             let string = String::from(path_or_string);
             let mut contents = string.into_bytes();
             println!("{}", encode_faster(&mut contents));
+        }
+    } else {
+        fn remove_whitespace(s: &str) -> String {
+            s.split_whitespace().collect()
+        }
+
+        if from_file {
+            let string = fs::read_to_string(path_or_string).unwrap();
+            let mut contents = String::from(remove_whitespace(&string)).into_bytes();
+            println!("{}", decode_faster(&mut contents));
+        } else {
+            let string = path_or_string;
+            let mut contents = String::from(remove_whitespace(&string)).into_bytes();
+            println!("{}", decode_faster(&mut contents));
         }
     }
 }
