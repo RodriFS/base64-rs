@@ -1,51 +1,85 @@
 use base64_rs::decoders::decode_faster;
 use base64_rs::encoders::encode_faster;
-use std::env;
-use std::fs;
+use clap::{App, Arg};
+use std::fs::{write, File};
+use std::io::Read;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let matches = App::new("base64-rs")
+        .version("0.1")
+        .about("A small cli base64 encoder and decoder")
+        .author("Rodrigo S. <rodrifs@gmail.com>")
+        .arg(
+            Arg::with_name("encode")
+                .short("e")
+                .long("encode")
+                .help("Encodes a given file or string")
+                .conflicts_with("decode")
+                .required_unless("decode"),
+        )
+        .arg(
+            Arg::with_name("decode")
+                .short("d")
+                .long("decode")
+                .help("Decodes a given file or string")
+                .conflicts_with("encode"),
+        )
+        .arg(
+            Arg::with_name("input")
+                .short("i")
+                .long("input")
+                .value_name("FILE")
+                .help("Encode/Decode from a file, example: --input ./input.txt")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("output")
+                .short("o")
+                .long("output")
+                .value_name("FILE")
+                .help("Encode/Decode into a file, example: --output ./output.txt")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("string")
+                .short("s")
+                .long("string")
+                .empty_values(false)
+                .value_name("STRING")
+                .help("Encode/Decode from a string, example: --string \"hello\"")
+                .takes_value(true)
+                .required_unless("input")
+                .conflicts_with("input"),
+        )
+        .get_matches();
 
-    if args.len() < 3 {
-        println!("Error: not enough arguments\n");
-        std::process::exit(0);
-    }
-
-    let mut is_encoding = false;
-    let mut from_file = false;
-    let mut path_or_string = String::new();
-    for arg in args {
-        if arg == "-e" || arg == "--encode" {
-            is_encoding = true;
-        } else if arg == "-f" || arg == "--file" {
-            from_file = true;
+    let is_encoding = matches.is_present("encode");
+    let result;
+    if matches.is_present("string") {
+        let string = matches.value_of("string").unwrap();
+        let mut contents = String::from(string).into_bytes();
+        if is_encoding {
+            result = encode_faster(&mut contents)
         } else {
-            path_or_string = arg;
+            result = decode_faster(&mut contents)
         }
-    }
-
-    if is_encoding {
-        if from_file {
-            let mut contents = fs::read(path_or_string).unwrap();
-            println!("{}", encode_faster(&mut contents));
+    } else if matches.is_present("input") {
+        let path = matches.value_of("input").unwrap();
+        let mut f = File::open(path).unwrap();
+        let mut buffer = Vec::new();
+        f.read_to_end(&mut buffer).unwrap();
+        if is_encoding {
+            result = encode_faster(&mut buffer)
         } else {
-            let string = String::from(path_or_string);
-            let mut contents = string.into_bytes();
-            println!("{}", encode_faster(&mut contents));
+            result = decode_faster(&mut buffer)
         }
     } else {
-        fn remove_whitespace(s: &str) -> String {
-            s.split_whitespace().collect()
-        }
-
-        if from_file {
-            let string = fs::read_to_string(path_or_string).unwrap();
-            let mut contents = String::from(remove_whitespace(&string)).into_bytes();
-            println!("{}", decode_faster(&mut contents));
-        } else {
-            let string = path_or_string;
-            let mut contents = String::from(remove_whitespace(&string)).into_bytes();
-            println!("{}", decode_faster(&mut contents));
-        }
+        eprintln!("Unexpected error");
+        std::process::exit(0);
+    }
+    if matches.is_present("output") {
+        write(matches.value_of("output").unwrap(), result).unwrap();
+    } else {
+        println!("{}", String::from_utf8(result).unwrap());
     }
 }

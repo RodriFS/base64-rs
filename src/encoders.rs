@@ -34,10 +34,10 @@ pub fn encode(file: &mut Vec<u8>) -> String {
   joined_result
 }
 
-pub fn encode_faster(file: &mut Vec<u8>) -> String {
+pub fn encode_faster(file: &mut Vec<u8>) -> Vec<u8> {
   let base_64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".as_bytes();
   let array_length = file.len();
-  let mut result: Vec<char> = Vec::new();
+  let mut result: Vec<u8> = Vec::new();
   let completed_triples = (array_length / 3) * 3;
 
   for item in (0..completed_triples).step_by(3) {
@@ -49,31 +49,30 @@ pub fn encode_faster(file: &mut Vec<u8>) -> String {
     let group2 = ((byte1 & 0x03) << 4) | ((byte2 & 0xf0) >> 4);
     let group3 = ((byte2 & 0x0f) << 2) | ((byte3 & 0xc0) >> 6);
     let group4 = byte3 & 0x3f;
-    result.push(base_64_table[group1 as usize] as char);
-    result.push(base_64_table[group2 as usize] as char);
-    result.push(base_64_table[group3 as usize] as char);
-    result.push(base_64_table[group4 as usize] as char);
+    result.push(base_64_table[group1 as usize]);
+    result.push(base_64_table[group2 as usize]);
+    result.push(base_64_table[group3 as usize]);
+    result.push(base_64_table[group4 as usize]);
   }
 
   let rest = array_length - completed_triples;
   if rest > 0 {
     let byte1 = file[completed_triples];
     let group1 = byte1 >> 2;
-    result.push(base_64_table[group1 as usize] as char);
+    result.push(base_64_table[group1 as usize]);
     if rest > 1 {
       let byte2 = file[completed_triples + 1];
       let group2 = ((byte1 & 0x03) << 4) | ((byte2 & 0xf0) >> 4);
       let group3 = ((byte2 & 0x0f) << 2) | ((0 & 0xc0) >> 6);
-      result.push(base_64_table[group2 as usize] as char);
-      result.push(base_64_table[group3 as usize] as char);
+      result.push(base_64_table[group2 as usize]);
+      result.push(base_64_table[group3 as usize]);
     } else {
       let group2 = ((byte1 & 0x03) << 4) | ((0 & 0xf0) >> 4);
-      result.push(base_64_table[group2 as usize] as char);
-      result.push('=')
+      result.push(base_64_table[group2 as usize]);
+      result.push('=' as u8)
     }
-    result.push('=');
+    result.push('=' as u8);
   }
 
-  let joined_result: String = result.into_iter().collect();
-  joined_result
+  result
 }
