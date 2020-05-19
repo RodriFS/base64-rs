@@ -37,7 +37,7 @@ pub fn encode(file: &mut Vec<u8>) -> String {
 pub fn encode_faster(file: &mut Vec<u8>) -> Vec<u8> {
   let base_64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".as_bytes();
   let array_length = file.len();
-  let mut result: Vec<u8> = Vec::new();
+  let mut result: Vec<u8> = Vec::with_capacity((((array_length * 4 / 3) + 4 - 1) / 4) * 4);
   let completed_triples = (array_length / 3) * 3;
 
   for item in (0..completed_triples).step_by(3) {

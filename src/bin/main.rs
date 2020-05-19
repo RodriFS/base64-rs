@@ -65,9 +65,20 @@ fn main() {
         }
     } else if matches.is_present("input") {
         let path = matches.value_of("input").unwrap();
-        let mut f = File::open(path).unwrap();
+        let mut f = match File::open(path) {
+            Ok(file) => file,
+            Err(err) => {
+                eprintln!("{}", err);
+                std::process::exit(0);
+            }
+        };
         let mut buffer = Vec::new();
         f.read_to_end(&mut buffer).unwrap();
+
+        if buffer.len() == 0 {
+            eprintln!("Error: File is empty");
+            std::process::exit(0);
+        }
         if is_encoding {
             result = encode_faster(&mut buffer)
         } else {

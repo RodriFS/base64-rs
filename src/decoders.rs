@@ -18,7 +18,7 @@ pub fn decode_faster(file: &mut Vec<u8>) -> Vec<u8> {
   ];
 
   let array_length = file.len();
-  let mut result: Vec<u8> = Vec::new();
+  let mut result: Vec<u8> = Vec::with_capacity(array_length * 3 / 4);
   let q1 = file[array_length - 1] == '=' as u8;
   let q2 = file[array_length - 2] == '=' as u8;
 
